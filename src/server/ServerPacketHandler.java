@@ -1,4 +1,4 @@
-package common;
+package server;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -7,13 +7,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Handler;
 
-public class PacketHandler implements Runnable{
+public class ServerPacketHandler implements Runnable{
 	
 	
 	
 	@Override
 	public void run() {
-		System.out.println("The chat server is running...");
+		System.out.println("Listener Enabled");
         ExecutorService pool = Executors.newFixedThreadPool(500);
         try (ServerSocket listener = new ServerSocket(59001)) {
             while (true) {
