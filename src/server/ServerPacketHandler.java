@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.Timer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -75,9 +76,10 @@ public class ServerPacketHandler implements Runnable {
 			try {
 				in = new Scanner(socket.getInputStream());
 				out = new PrintWriter(socket.getOutputStream(), true);
-				while (true) {
-					while (true) {
+				while (!Thread.currentThread().isInterrupted()) {
+					while (!Thread.currentThread().isInterrupted()) {
 						byte[] nameRequestPacket = { PacketRegistry.NAME_REQUEST };
+						long startTime = System.nanoTime();
 						out.println(new String(nameRequestPacket, 0, 1));
 						name = in.nextLine();
 						
@@ -91,6 +93,7 @@ public class ServerPacketHandler implements Runnable {
 								user.port = socket.getPort();
 								user.name = name;
 								user.tcpStream = out;
+								user.latency = System.nanoTime() - startTime;
 								users.put(name, user);
 								printToAll(name + " has joined");
 								break;

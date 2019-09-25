@@ -1,57 +1,37 @@
 package client;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.Socket;
-import java.util.Scanner;
+import javax.swing.JPanel;
 
-import common.PacketRegistry;
 import server.DwarfServer;
 
 
-public class DwarfClient {
+public class DwarfClient extends JPanel{
 
+	
 	public static void main(String[] args) {
 		DwarfServer ds = new DwarfServer();
 		ds.start();
-		DwarfClient client = new DwarfClient("localhost");
-		client.run();
+		DwarfClient client = new DwarfClient();
+		client.connect("localhost");
 		
 	}
 	
-	String serverAddress;
-	Scanner in;
-	PrintWriter out;
+	ClientPacketHandler handler;
+	Thread handlerThread;
 	
-	public DwarfClient(String addr) {
-		serverAddress = addr;
+	public DwarfClient() {
 	}
 	
-	public void run()
+	public void connect(String addr)
 	{
-		try {
-            Socket socket = new Socket(serverAddress, 59001);
-            in = new Scanner(socket.getInputStream());
-            out = new PrintWriter(socket.getOutputStream(), true);
-            System.out.println(Thread.getAllStackTraces().keySet());
-            while (in.hasNextLine()) {
-                String line = in.nextLine();
-                byte[] data = line.getBytes();
-                byte type = data[0];
-                byte[] content = new byte[data.length-1];
-                System.arraycopy(data, 1, content, 0, content.length);
-                if (type == PacketRegistry.NAME_REQUEST) {
-                    out.println("TestName");
-                }else if (type == PacketRegistry.MESSAGE) {
-                    System.out.println(new String(content));
-                }
-            }
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally
+		if(handler != null)
 		{
-			
+			handlerThread.interrupt();
 		}
+		handler = new ClientPacketHandler(addr);
+		handlerThread = new Thread(handler);
+		handlerThread.setName("ClientPacketHandler");
+		handlerThread.run();
 	}
 	
 }

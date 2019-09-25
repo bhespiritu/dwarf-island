@@ -2,7 +2,8 @@ package server;
 
 import java.io.PrintWriter;
 import java.net.InetAddress;
-import java.net.Socket;
+
+import common.Transform;
 
 public class User {
 	
@@ -13,6 +14,7 @@ public class User {
 	public int port;
 	public String name;
 	public PrintWriter tcpStream;
+	public long latency;
 	
 	
 	private static int getNextID()
