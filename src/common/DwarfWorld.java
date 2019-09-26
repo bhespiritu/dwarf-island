@@ -1,6 +1,6 @@
 package common;
 
-public class DwarfWorld {
+public class DwarfWorld {//handles objects
 	
 	private long startTime;
 	
