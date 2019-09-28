@@ -77,7 +77,9 @@ public class ServerPacketHandler implements Runnable {
 				in = new Scanner(socket.getInputStream());
 				out = new PrintWriter(socket.getOutputStream(), true);
 				while (!Thread.currentThread().isInterrupted()) {
-					while (!Thread.currentThread().isInterrupted()) {
+					int timeout = 0;
+					while (!Thread.currentThread().isInterrupted() && timeout <= 1000) {
+						timeout++;
 						byte[] nameRequestPacket = { PacketRegistry.NAME_REQUEST };
 						long startTime = System.nanoTime();
 						out.println(new String(nameRequestPacket, 0, 1));
@@ -96,6 +98,7 @@ public class ServerPacketHandler implements Runnable {
 								user.latency = System.nanoTime() - startTime;
 								users.put(name, user);
 								printToAll(name + " has joined");
+								System.out.println(users.keySet());
 								break;
 							}
 						}

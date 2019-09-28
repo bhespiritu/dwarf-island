@@ -13,8 +13,11 @@ public class ClientPacketHandler implements Runnable{
 	Scanner in;
 	PrintWriter out;
 	
+	public String testName = "TestName";
+	
 	public ClientPacketHandler(String addr) {
 		serverAddress = addr;
+		testName += (int)(Math.random()*1000);
 	}
 	
 	
@@ -32,7 +35,8 @@ public class ClientPacketHandler implements Runnable{
                 byte[] content = new byte[data.length-1];
                 System.arraycopy(data, 1, content, 0, content.length);
                 if (type == PacketRegistry.NAME_REQUEST) {
-                    out.println("TestName");
+                    out.println(testName);
+                    
                 }else if (type == PacketRegistry.MESSAGE) {
                     System.out.println(new String(content));
                 }
