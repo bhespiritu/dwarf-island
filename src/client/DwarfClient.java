@@ -2,13 +2,18 @@ package client;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.util.HashMap;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import common.DwarfWorld;
+import common.GenericObject;
+import common.PacketRegistry;
+import common.PlayerObject;
 import server.DwarfServer;
 
 
@@ -22,6 +27,8 @@ public class DwarfClient extends JPanel{
 	private int dID;
 	
 	public String debugName = "testNAME";
+	
+	private HashMap<String, PlayerObject> players = new HashMap<String, PlayerObject>();
 	
 	public static void main(String[] args) throws InterruptedException {
 		JFrame frame = new JFrame("Digg");
@@ -72,11 +79,35 @@ public class DwarfClient extends JPanel{
 		handlerThread.start();
 	}
 	
+	public void sendMessage(String msg)
+	{
+		byte[] messageData = msg.getBytes();
+		byte[] outputData = new byte[messageData.length+1]; 
+		outputData[0] = PacketRegistry.MESSAGE;
+		System.arraycopy(messageData, 0,outputData, 1, messageData.length);
+		handler.sendPacket(new String(outputData,0,outputData.length));
+	}
+	
+	public void renderMessage(String userID, String message)
+	{
+		PlayerObject p = players.get(userID);
+		if(p != null)
+		{
+			
+		}
+	}
+	
 	float time = 0;
+	GenericObject testObject = new GenericObject();
+	Font defaultFont = new Font("Courier New", Font.PLAIN, 5);
+	
 	
 	@Override
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
+		
+		g.setFont(defaultFont);
+		
 		Graphics2D g2d = (Graphics2D)g;
 		g2d.translate(getWidth()/2, getHeight()/2);
 		g2d.scale(2,2);
@@ -93,6 +124,12 @@ public class DwarfClient extends JPanel{
 			}
 		}
 		g2d.drawImage(TextureManager.instance.dwarf, 0, 0, null);
+		Color hold = g2d.getColor();
+		testObject.transform.X = (float) (Math.sin(time));
+		testObject.draw(g2d, offsetX*16, offsetY*16);
+		LabelObject testLabel = new LabelObject("According to all known laws of....");
+		testLabel.draw(g2d, offsetX*16, offsetY*16);
+		g.setColor(hold);
 	}
 	
 }

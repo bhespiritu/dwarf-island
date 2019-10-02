@@ -20,6 +20,10 @@ public class ClientPacketHandler implements Runnable{
 		testName += (int)(Math.random()*1000);
 	}
 	
+	public void sendPacket(String data)
+	{
+		out.println(data);
+	}
 	
 	public void run()
 	{
