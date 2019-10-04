@@ -1,11 +1,11 @@
-package client;
+package legacy.client;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;
 
-import common.PacketRegistry;
+import legacy.common.PacketRegistry;
 
 public class ClientPacketHandler implements Runnable{
 	

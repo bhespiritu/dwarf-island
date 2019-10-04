@@ -1,8 +1,8 @@
-package common;
+package legacy.common;
 
 import java.net.DatagramPacket;
 
-import client.*;
+import legacy.client.*;
 
 public abstract class Packet {
 	

@@ -1,7 +1,9 @@
-package common;
+package legacy.common;
 
 import java.awt.Color;
 import java.awt.Graphics;
+
+import legacy.client.IDrawable;
 
 public class GenericObject implements IDrawable{
 

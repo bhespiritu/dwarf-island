@@ -1,23 +1,25 @@
-package client;
+package legacy.client;
 
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import common.DwarfWorld;
-import common.GenericObject;
-import common.PacketRegistry;
-import common.PlayerObject;
-import server.DwarfServer;
+import legacy.common.DwarfWorld;
+import legacy.common.GenericObject;
+import legacy.common.PacketRegistry;
+import legacy.server.DwarfServer;
 
 
-public class DwarfClient extends JPanel{
+public class DwarfClient extends JPanel implements KeyListener{
 
 	DwarfWorld world;
 	
@@ -29,13 +31,13 @@ public class DwarfClient extends JPanel{
 	public String debugName = "testNAME";
 	
 	private HashMap<String, PlayerObject> players = new HashMap<String, PlayerObject>();
+	private HashSet<WorldObject> worldObjects = new HashSet<WorldObject>();
 	
 	public static void main(String[] args) throws InterruptedException {
 		JFrame frame = new JFrame("Digg");
 		DwarfServer ds = new DwarfServer();
 		ds.start();
 		DwarfClient client = new DwarfClient();
-		DwarfClient client2 = new DwarfClient();
 		
 		client.debugName = "User1";
 		
@@ -93,13 +95,16 @@ public class DwarfClient extends JPanel{
 		PlayerObject p = players.get(userID);
 		if(p != null)
 		{
-			
+			LabelObject label = new LabelObject(message);
+			label.parent = p;
+			worldObjects.add(label);
 		}
 	}
 	
 	float time = 0;
 	GenericObject testObject = new GenericObject();
 	Font defaultFont = new Font("Courier New", Font.PLAIN, 5);
+	LabelObject testLabel = new LabelObject("According to all known laws of....");
 	
 	
 	@Override
@@ -111,8 +116,8 @@ public class DwarfClient extends JPanel{
 		Graphics2D g2d = (Graphics2D)g;
 		g2d.translate(getWidth()/2, getHeight()/2);
 		g2d.scale(2,2);
-		int offsetX = (int) (4*Math.sin(time));
-		int offsetY  = (int) (4*Math.cos(time));
+		int offsetX = (int) (4*Math.sin(time))*0 + 2;
+		int offsetY  = (int) (4*Math.cos(time))*0 + 2;
 		
 		//TODO debug visuals. don't keep
 		for(int x = -drawDistance; x < drawDistance; x++)
@@ -125,11 +130,33 @@ public class DwarfClient extends JPanel{
 		}
 		g2d.drawImage(TextureManager.instance.dwarf, 0, 0, null);
 		Color hold = g2d.getColor();
-		testObject.transform.X = (float) (Math.sin(time));
-		testObject.draw(g2d, offsetX*16, offsetY*16);
-		LabelObject testLabel = new LabelObject("According to all known laws of....");
-		testLabel.draw(g2d, offsetX*16, offsetY*16);
+		
+
 		g.setColor(hold);
+	}
+
+
+
+	@Override
+	public void keyPressed(KeyEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+
+	@Override
+	public void keyReleased(KeyEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+
+	@Override
+	public void keyTyped(KeyEvent arg0) {
+		// TODO Auto-generated method stub
+		
 	}
 	
 }

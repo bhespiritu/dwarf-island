@@ -1,9 +1,9 @@
-package server;
+package legacy.server;
 
 import java.io.PrintWriter;
 import java.net.InetAddress;
 
-import common.Transform;
+import legacy.common.Transform;
 
 public class User {
 	

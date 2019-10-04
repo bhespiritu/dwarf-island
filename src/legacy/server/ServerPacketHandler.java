@@ -1,4 +1,4 @@
-package server;
+package legacy.server;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -15,7 +15,7 @@ import java.util.Timer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import common.PacketRegistry;
+import legacy.common.PacketRegistry;
 
 public class ServerPacketHandler implements Runnable {
 

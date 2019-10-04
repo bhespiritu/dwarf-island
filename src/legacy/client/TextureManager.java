@@ -1,4 +1,4 @@
-package client;
+package legacy.client;
 
 import java.awt.Image;
 import java.io.IOException;

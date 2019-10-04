@@ -1,4 +1,4 @@
-package common;
+package legacy.common;
 
 public class PacketRegistry {
 

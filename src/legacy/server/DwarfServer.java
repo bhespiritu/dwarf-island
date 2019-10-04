@@ -1,4 +1,4 @@
-package server;
+package legacy.server;
 
 public class DwarfServer {
 	ServerPacketHandler sph;
