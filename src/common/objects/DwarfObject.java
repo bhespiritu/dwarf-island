@@ -18,10 +18,9 @@ public class DwarfObject extends WorldObject{
 	@Override
 	protected void drawObject(DwarfClient context, Graphics g) {
 		g.drawImage(icon,-8,-8,null);
-		String idData = HashGenerator.byteToHex(id);
-		int labelWidth = g.getFontMetrics().stringWidth(idData);
+		int labelWidth = g.getFontMetrics().stringWidth(name);
 		g.setColor(Color.BLACK);
-		g.drawString(idData, -labelWidth/2, 12);
+		g.drawString(name, -labelWidth/2, 12);
 		
 	}
 	

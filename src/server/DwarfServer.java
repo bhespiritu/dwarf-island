@@ -1,5 +1,8 @@
 package server;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -10,9 +13,10 @@ public class DwarfServer implements Runnable{
 
 	private static final int PORT = Integer.parseInt(System.getProperty("port", "7686"));
 	
-	public static void main(String[] args) throws InterruptedException {
+	public static void main(String[] args) throws InterruptedException, UnknownHostException {
 		DwarfServer server = new DwarfServer();
 		server.run();
+		
 	}
 	
 	public DwarfServer() {

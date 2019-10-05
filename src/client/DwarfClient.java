@@ -13,6 +13,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import common.HashGenerator;
@@ -36,14 +37,10 @@ public class DwarfClient extends JPanel implements KeyListener{
 	public static void main(String[] args) throws Exception {
 		JFrame frame = new JFrame("Digscord");
 		DwarfClient client = new DwarfClient();
-		DwarfObject testPlayer = new DwarfObject();
 		
-		DwarfServer server = new DwarfServer();
+		String clientName = JOptionPane.showInputDialog("Enter the name you desire");
 		
-		Thread testThread = new Thread(server);
-		testThread.start();
-		
-		client.connect("Honeydew");
+		client.connect(clientName);
 		
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setContentPane(client);
@@ -242,6 +239,16 @@ public class DwarfClient extends JPanel implements KeyListener{
 		{
 			clientPlayer.posX = -cameraX/32f;
 			clientPlayer.posY = -cameraY/32f;
+			
+			ByteBuffer buffer = ByteBuffer.allocate(3*4 + 1);
+			buffer.put(PacketID.MOVE);
+			buffer.putInt(clientPlayer.id);
+			buffer.putFloat(clientPlayer.posX);
+			buffer.putFloat(clientPlayer.posY);
+			buffer.rewind();
+			DatagramPacket messagePacket = new DatagramPacket(Unpooled.copiedBuffer(buffer)
+					,serverAddress);
+			serverChannel.writeAndFlush(messagePacket);
 		}
 		
 	}

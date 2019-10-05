@@ -23,9 +23,8 @@ public class DwarfClientHandler extends SimpleChannelInboundHandler<DatagramPack
 		
 		ByteBufInputStream packet = new ByteBufInputStream(msg.content());
 		byte first = packet.readByte();
-		System.out.println("CLIENT: " + msg + " " + first);
 		byte[] hash;
-		int newX, newY;
+		float newX, newY;
 		int id;
 		WorldObject obj;
 		switch(first)
@@ -41,8 +40,8 @@ public class DwarfClientHandler extends SimpleChannelInboundHandler<DatagramPack
 				break;
 			case PacketID.MOVE:
 				id = packet.readInt();
-				newX = packet.readInt();
-				newY = packet.readInt();
+				newX = packet.readFloat();
+				newY = packet.readFloat();
 				obj = clientContext.getObject(id);
 				obj.posX = newX;
 				obj.posY = newY;
@@ -51,10 +50,12 @@ public class DwarfClientHandler extends SimpleChannelInboundHandler<DatagramPack
 				id = packet.readInt();
 				newX = packet.readInt();
 				newY = packet.readInt();
+				String name = new String(packet.readAllBytes());
 				DwarfObject newDwarf = new DwarfObject();
 				newDwarf.id = id;
 				newDwarf.posX = newX;
 				newDwarf.posY = newY;
+				newDwarf.name = name;
 				clientContext.setClientObject(newDwarf);
 				clientContext.spawnNetworkObject(newDwarf, id);
 				break;
