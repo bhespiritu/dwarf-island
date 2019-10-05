@@ -13,6 +13,7 @@ import java.util.HashSet;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import common.TextureManager;
 import legacy.common.DwarfWorld;
 import legacy.common.GenericObject;
 import legacy.common.PacketRegistry;

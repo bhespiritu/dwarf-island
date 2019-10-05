@@ -2,6 +2,8 @@ package legacy.client;
 
 import java.awt.Graphics;
 
+import common.TextureManager;
+
 public class PlayerObject extends WorldObject{
 	
 	public PlayerObject() {
