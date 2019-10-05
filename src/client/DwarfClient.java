@@ -8,6 +8,8 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 
 import javax.swing.JFrame;
@@ -35,17 +37,13 @@ public class DwarfClient extends JPanel implements KeyListener{
 		JFrame frame = new JFrame("Digscord");
 		DwarfClient client = new DwarfClient();
 		DwarfObject testPlayer = new DwarfObject();
-		client.spawnClientObject(testPlayer);
-		
-		client.displayMessage(testPlayer, "testMessage");
-		client.setClientObject(testPlayer);
 		
 		DwarfServer server = new DwarfServer();
 		
 		Thread testThread = new Thread(server);
 		testThread.start();
 		
-		client.connect();
+		client.connect("Honeydew");
 		
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setContentPane(client);
@@ -65,9 +63,11 @@ public class DwarfClient extends JPanel implements KeyListener{
 	
 	static final int PORT = Integer.parseInt(System.getProperty("port", "7686"));
 	
-	private HashMap<String,WorldObject> objects = new HashMap<String,WorldObject>();
+	private HashMap<Integer,WorldObject> objects = new HashMap<Integer,WorldObject>();
 	
 	private DwarfObject clientPlayer;
+	
+	private InetSocketAddress serverAddress;
 	
 	public int cameraX = 0, cameraY = 0;
 	
@@ -87,16 +87,16 @@ public class DwarfClient extends JPanel implements KeyListener{
 		lookAtObject(clientPlayer);
 	}
 	
-	public WorldObject getObject(String hash)
+	public WorldObject getObject(int id)
 	{
-		return objects.get(hash);
+		return objects.get(id);
 	}
 	
-	public void spawnObject(WorldObject object, String hashID, boolean network)//registers a worldobject with the world
+	public void spawnObject(WorldObject object, int i, boolean network)//registers a worldobject with the world
 	{
-		object.id = hashID;
+		object.id = i;
 		object.isNetworked = network;
-		objects.put(hashID, object);
+		objects.put(i, object);
 	}
 	
 	
@@ -105,12 +105,12 @@ public class DwarfClient extends JPanel implements KeyListener{
 		spawnObject(object,HashGenerator.generate(),false);
 	}
 	
-	public void spawnNetworkObject(WorldObject object, String hashID)
+	public void spawnNetworkObject(WorldObject object, Integer hashID)
 	{
 		spawnObject(object,hashID,true);
 	}
 	
-	public void destroyObject(String hashID)
+	public void destroyObject(Integer hashID)
 	{
 		objects.remove(hashID);
 	}
@@ -122,8 +122,8 @@ public class DwarfClient extends JPanel implements KeyListener{
 	
 	public void lookAtObject(WorldObject object)
 	{
-		cameraX = (int) (object.posX*16);
-		cameraY = (int) (object.posY*16);
+		cameraX = -(int) (object.posX*32);
+		cameraY = -(int) (object.posY*32);
 	}
 	
 	public void displayMessage(WorldObject object, String message)
@@ -164,7 +164,7 @@ public class DwarfClient extends JPanel implements KeyListener{
 	DwarfClientHandler handler = new DwarfClientHandler(this);
 	Channel serverChannel;
 	
-	public void connect() throws Exception
+	public void connect(String name) throws Exception
 	{
 		NioEventLoopGroup group = new NioEventLoopGroup();
 		
@@ -180,11 +180,23 @@ public class DwarfClient extends JPanel implements KeyListener{
 		byte[] pingData = new byte[1];
 		pingData[0] = PacketID.ECHO;
 		
+		serverAddress = SocketUtils.socketAddress("localhost", PORT);
+		
 		DatagramPacket pingPacket = new DatagramPacket(Unpooled.copiedBuffer(pingData)
-				,SocketUtils.socketAddress("localhost", PORT));
+				,serverAddress);
 		
-		serverChannel.writeAndFlush(pingPacket).sync();
+		serverChannel.writeAndFlush(pingPacket).await();
 		
+		byte[] nameBytes = name.getBytes();
+		byte[] connect = new byte[1 + nameBytes.length];
+		connect[0] = PacketID.CONNECT;
+		System.arraycopy(nameBytes, 0, connect, 1, nameBytes.length);
+		
+		DatagramPacket connectPacket = new DatagramPacket(Unpooled.copiedBuffer(connect)
+				,serverAddress);
+		
+		serverChannel.writeAndFlush(connectPacket);
+	
 	}
 
 	@Override
@@ -213,6 +225,17 @@ public class DwarfClient extends JPanel implements KeyListener{
 		if(ke.getKeyChar() == 'd')
 		{
 			cameraX -= 8;
+		}
+		
+		if(ke.getKeyChar() == 'f')
+		{
+			ByteBuffer buffer = ByteBuffer.allocate("Yarr!".length() + 1);
+			buffer.put(PacketID.MESSAGE);
+			buffer.put("Yarr!".getBytes());
+			buffer.rewind();
+			DatagramPacket messagePacket = new DatagramPacket(Unpooled.copiedBuffer(buffer)
+					,serverAddress);
+			serverChannel.writeAndFlush(messagePacket);
 		}
 		
 		if(clientPlayer != null)

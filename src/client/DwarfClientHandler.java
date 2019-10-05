@@ -20,12 +20,13 @@ public class DwarfClientHandler extends SimpleChannelInboundHandler<DatagramPack
 	
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket msg) throws Exception {
-		System.out.println("CLIENT: " + msg);
+		
 		ByteBufInputStream packet = new ByteBufInputStream(msg.content());
 		byte first = packet.readByte();
+		System.out.println("CLIENT: " + msg + " " + first);
 		byte[] hash;
 		int newX, newY;
-		String id;
+		int id;
 		WorldObject obj;
 		switch(first)
 		{
@@ -33,17 +34,13 @@ public class DwarfClientHandler extends SimpleChannelInboundHandler<DatagramPack
 				System.out.println("Server Pinged");
 				break;
 			case PacketID.MESSAGE:
-				hash = new byte[4];
-				packet.read(hash);
-				id = HashGenerator.byteToHex(hash);
+				id = packet.readInt();
 				obj = clientContext.getObject(id);
 				byte[] message = packet.readAllBytes();
 				clientContext.displayMessage(obj, new String(message));
 				break;
 			case PacketID.MOVE:
-				hash = new byte[4];
-				packet.read(hash);
-				id = HashGenerator.byteToHex(hash);
+				id = packet.readInt();
 				newX = packet.readInt();
 				newY = packet.readInt();
 				obj = clientContext.getObject(id);
@@ -51,9 +48,7 @@ public class DwarfClientHandler extends SimpleChannelInboundHandler<DatagramPack
 				obj.posY = newY;
 				break;
 			case PacketID.CONNECT:
-				hash = new byte[4];
-				packet.read(hash);
-				id = HashGenerator.byteToHex(hash);
+				id = packet.readInt();
 				newX = packet.readInt();
 				newY = packet.readInt();
 				DwarfObject newDwarf = new DwarfObject();

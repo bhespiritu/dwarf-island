@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 
 import client.DwarfClient;
+import common.HashGenerator;
 import common.TextureManager;
 
 public class DwarfObject extends WorldObject{
@@ -17,9 +18,10 @@ public class DwarfObject extends WorldObject{
 	@Override
 	protected void drawObject(DwarfClient context, Graphics g) {
 		g.drawImage(icon,-8,-8,null);
-		int labelWidth = g.getFontMetrics().stringWidth(id);
+		String idData = HashGenerator.byteToHex(id);
+		int labelWidth = g.getFontMetrics().stringWidth(idData);
 		g.setColor(Color.BLACK);
-		g.drawString(id, -labelWidth/2, 12);
+		g.drawString(idData, -labelWidth/2, 12);
 		
 	}
 	

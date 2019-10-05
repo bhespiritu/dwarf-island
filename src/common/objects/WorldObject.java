@@ -12,7 +12,7 @@ public abstract class WorldObject {
 	
 	public WorldObject parent = null;
 	
-	public String id = "NULL";
+	public int id = 0;
 	
 	public boolean isNetworked = false;
 	
