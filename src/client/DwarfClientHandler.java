@@ -20,6 +20,7 @@ public class DwarfClientHandler extends SimpleChannelInboundHandler<DatagramPack
 	
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket msg) throws Exception {
+		System.out.println("CLIENT: " + msg);
 		ByteBufInputStream packet = new ByteBufInputStream(msg.content());
 		byte first = packet.readByte();
 		byte[] hash;

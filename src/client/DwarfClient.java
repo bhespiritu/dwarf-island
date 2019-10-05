@@ -14,15 +14,20 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import common.HashGenerator;
+import common.PacketID;
 import common.TextureManager;
 import common.objects.DwarfObject;
 import common.objects.LabelObject;
 import common.objects.WorldObject;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import io.netty.util.internal.SocketUtils;
+import server.DwarfServer;
 
 public class DwarfClient extends JPanel implements KeyListener{
 	
@@ -34,6 +39,11 @@ public class DwarfClient extends JPanel implements KeyListener{
 		
 		client.displayMessage(testPlayer, "testMessage");
 		client.setClientObject(testPlayer);
+		
+		DwarfServer server = new DwarfServer();
+		
+		Thread testThread = new Thread(server);
+		testThread.start();
 		
 		client.connect();
 		
@@ -157,20 +167,24 @@ public class DwarfClient extends JPanel implements KeyListener{
 	public void connect() throws Exception
 	{
 		NioEventLoopGroup group = new NioEventLoopGroup();
-		try
-		{
-			Bootstrap b = new Bootstrap();
-			
-			b.group(group)
-				.channel(NioDatagramChannel.class)
-				.option(ChannelOption.SO_BROADCAST, true)
-				.handler(handler);
-			
-			serverChannel = b.bind(0).sync().channel();
-		} finally
-		{
-			group.shutdownGracefully();
-		}
+		
+		Bootstrap b = new Bootstrap();
+		
+		b.group(group)
+			.channel(NioDatagramChannel.class)
+			.option(ChannelOption.SO_BROADCAST, true)
+			.handler(handler);
+		
+		serverChannel = b.bind(0).sync().channel();
+		
+		byte[] pingData = new byte[1];
+		pingData[0] = PacketID.ECHO;
+		
+		DatagramPacket pingPacket = new DatagramPacket(Unpooled.copiedBuffer(pingData)
+				,SocketUtils.socketAddress("localhost", PORT));
+		
+		serverChannel.writeAndFlush(pingPacket).sync();
+		
 	}
 
 	@Override
