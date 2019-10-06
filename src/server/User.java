@@ -2,13 +2,15 @@ package server;
 
 import java.net.InetSocketAddress;
 
-public class User {
+import io.netty.channel.Channel;
 
-	public InetSocketAddress outSocket;
-	public int hash;
+public class User {
 	
-	public User(InetSocketAddress addr) {
-		outSocket = addr;
+	public int hash;
+	public Channel channel;
+	
+	public User() {
+		
 	}
 	
 }

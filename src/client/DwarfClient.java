@@ -34,10 +34,23 @@ import server.DwarfServer;
 
 public class DwarfClient extends JPanel implements KeyListener{
 	
+	public static final boolean DEBUG_LAUNCH = true;
+	
 	public static void main(String[] args) throws Exception {
 		JFrame frame = new JFrame("Digscord");
-		DwarfClient client = new DwarfClient();
 		
+		String ipAddress;
+		
+		if(DEBUG_LAUNCH)
+		{
+			DwarfServer testServer = new DwarfServer();
+			Thread serverThread = new Thread(testServer);
+			serverThread.start();
+			ipAddress = "localhost";
+		} else
+			ipAddress=JOptionPane.showInputDialog("Enter IP Address");
+		
+		DwarfClient client = new DwarfClient(ipAddress);
 		String clientName = JOptionPane.showInputDialog("Enter the name you desire");
 		
 		client.connect(clientName);
@@ -71,7 +84,8 @@ public class DwarfClient extends JPanel implements KeyListener{
 	private static Dimension defaultDimension = new Dimension(320,320);
 	private static Font defaultFont = new Font("Courier New", Font.PLAIN, 5);
 	
-	public DwarfClient() {
+	public DwarfClient(String addr) {
+		serverAddress = SocketUtils.socketAddress(addr, PORT);
 		setBackground(Color.cyan);
 		setPreferredSize(defaultDimension);
 		
@@ -86,8 +100,10 @@ public class DwarfClient extends JPanel implements KeyListener{
 	
 	public WorldObject getObject(int id)
 	{
+		if(!objects.containsKey(id))System.out.println(id + " was requested, it doesn't exist in this instance");
 		return objects.get(id);
 	}
+	
 	
 	public void spawnObject(WorldObject object, int i, boolean network)//registers a worldobject with the world
 	{
@@ -177,7 +193,7 @@ public class DwarfClient extends JPanel implements KeyListener{
 		byte[] pingData = new byte[1];
 		pingData[0] = PacketID.ECHO;
 		
-		serverAddress = SocketUtils.socketAddress("localhost", PORT);
+		
 		
 		DatagramPacket pingPacket = new DatagramPacket(Unpooled.copiedBuffer(pingData)
 				,serverAddress);

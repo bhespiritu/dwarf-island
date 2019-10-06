@@ -23,10 +23,10 @@ public class DwarfClientHandler extends SimpleChannelInboundHandler<DatagramPack
 		
 		ByteBufInputStream packet = new ByteBufInputStream(msg.content());
 		byte first = packet.readByte();
-		byte[] hash;
 		float newX, newY;
 		int id;
 		WorldObject obj;
+		DwarfObject newDwarf;
 		switch(first)
 		{
 			case PacketID.ECHO:
@@ -51,7 +51,7 @@ public class DwarfClientHandler extends SimpleChannelInboundHandler<DatagramPack
 				newX = packet.readInt();
 				newY = packet.readInt();
 				String name = new String(packet.readAllBytes());
-				DwarfObject newDwarf = new DwarfObject();
+				newDwarf = new DwarfObject();
 				newDwarf.id = id;
 				newDwarf.posX = newX;
 				newDwarf.posY = newY;
@@ -59,6 +59,26 @@ public class DwarfClientHandler extends SimpleChannelInboundHandler<DatagramPack
 				clientContext.setClientObject(newDwarf);
 				clientContext.spawnNetworkObject(newDwarf, id);
 				break;
+			case PacketID.SPAWN:
+				id = packet.readInt();
+				int type = packet.readInt();
+				newX = packet.readInt();
+				newY = packet.readInt();
+				if(type == 1)
+				{
+					newDwarf = new DwarfObject();
+					newDwarf.id = id;
+					newDwarf.posX = newX;
+					newDwarf.posY = newY;
+					newDwarf.deserializeData(packet.readAllBytes());
+					clientContext.spawnNetworkObject(newDwarf, id);
+				}
+				break;
+			case PacketID.DELETE:
+				id = packet.readInt();
+				clientContext.destroyObject(id);
+				break;
+				
 		}
 		packet.close();
 	}

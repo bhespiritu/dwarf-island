@@ -23,5 +23,21 @@ public class DwarfObject extends WorldObject{
 		g.drawString(name, -labelWidth/2, 12);
 		
 	}
+
+	@Override
+	public byte getObjectID() {
+		return 1;
+	}
+
+	@Override
+	public void deserializeData(byte[] data) {
+		name = new String(data);
+		
+	}
+
+	@Override
+	public byte[] serializeData() {
+		return name.getBytes();
+	}
 	
 }

@@ -18,6 +18,12 @@ public abstract class WorldObject {
 	
 	protected static Image icon; 
 	
+	public WorldObject() {}
+	
+	public abstract void deserializeData(byte[] data);
+	
+	public abstract byte[] serializeData();
+	
 	protected abstract void drawObject(DwarfClient context, Graphics g);
 	
 	public void draw(DwarfClient context, Graphics g)
@@ -38,6 +44,8 @@ public abstract class WorldObject {
 		g.translate(-pixX, -pixY);
 		
 	}
+	
+	public abstract byte getObjectID();
 	
 	
 }

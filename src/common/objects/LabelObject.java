@@ -54,4 +54,15 @@ public class LabelObject extends WorldObject{
 		
 	}
 
+	@Override
+	public byte getObjectID() {
+		return 2;
+	}
+
+	@Override
+	public void deserializeData(byte[] data) {}
+
+	@Override
+	public byte[] serializeData() {return null;}
+
 }

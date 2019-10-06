@@ -2,21 +2,31 @@ package server;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.HashMap;
 
 import common.HashGenerator;
 import common.PacketID;
+import common.objects.DwarfObject;
+import common.objects.WorldObject;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.socket.DatagramPacket;
 
 public class DwarfServerHandler extends SimpleChannelInboundHandler<DatagramPacket> {
-
-	HashMap<InetSocketAddress, User> userData = new HashMap<InetSocketAddress, User>();
 	
+	ChannelGroup channels;
+	
+	User associatedUser;
+	
+	public DwarfServerHandler(ChannelGroup channels) {
+		this.channels = channels;
+		associatedUser = new User();
+		
+	}
+
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket msg) throws Exception {
 		
@@ -24,7 +34,6 @@ public class DwarfServerHandler extends SimpleChannelInboundHandler<DatagramPack
 		DatagramPacket returnPacket;
 		byte first = packet.readByte();
 		byte[] returnData = {first};
-		User user = userData.get(msg.sender());
 		ByteBuffer datagram;
 		switch(first)
 		{
@@ -39,7 +48,7 @@ public class DwarfServerHandler extends SimpleChannelInboundHandler<DatagramPack
 				
 				ByteBuffer data = ByteBuffer.allocate(message.getBytes().length + 1 + Integer.BYTES);
 				data.put(PacketID.MESSAGE);
-				data.putInt(user.hash);
+				data.putInt(associatedUser.hash);
 				data.put(message.getBytes());
 				data.rewind();
 				sendToAll(ctx, data);
@@ -50,12 +59,12 @@ public class DwarfServerHandler extends SimpleChannelInboundHandler<DatagramPack
 				
 				datagram = ByteBuffer.allocate(3*4 + 1);
 				datagram.put(PacketID.MOVE);
-				datagram.putInt(user.hash);
+				datagram.putInt(associatedUser.hash);
 				datagram.putFloat(changeX);
 				datagram.putFloat(changeY);
 				datagram.rewind();
 				
-				sendToAllExcept(ctx, datagram, msg.sender());
+				sendToAllOther(ctx, datagram);
 				
 				break;
 			case PacketID.CONNECT:
@@ -74,9 +83,16 @@ public class DwarfServerHandler extends SimpleChannelInboundHandler<DatagramPack
 				returnPacket = new DatagramPacket(Unpooled.copiedBuffer(datagram),msg.sender());
 				ctx.write(returnPacket);
 				
-				User newUser = new User(msg.sender());
-				newUser.hash = hash;
-				userData.put(msg.sender(), newUser);
+				associatedUser.hash = hash;
+				
+				DwarfObject newDwarf = new DwarfObject();
+				newDwarf.id = hash;
+				newDwarf.posX = newX;
+				newDwarf.posY = newY;
+				newDwarf.name = name;
+				
+				spawnPlayerObject(ctx, newDwarf);
+				
 				break;
 		}
 		packet.close();
@@ -85,8 +101,32 @@ public class DwarfServerHandler extends SimpleChannelInboundHandler<DatagramPack
 	@Override
 	public void channelReadComplete(ChannelHandlerContext ctx) {
 		ctx.flush();
+		
 	}
 
+	@Override
+	public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+		super.handlerRemoved(ctx);
+		
+	}
+	
+	@Override
+	public void channelActive(ChannelHandlerContext ctx) throws Exception {
+	    channels.add(ctx.channel());
+	    associatedUser.channel = ctx.channel();
+	}
+	
+	@Override
+	public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+		super.handlerRemoved(ctx);
+		ByteBuffer buffer = ByteBuffer.allocate(1 + Integer.BYTES);
+		buffer.put(PacketID.DELETE);
+		buffer.putInt(associatedUser.hash);
+		sendToAllOther(ctx, buffer);
+		
+		
+	}
+	
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
 		cause.printStackTrace();
@@ -95,22 +135,46 @@ public class DwarfServerHandler extends SimpleChannelInboundHandler<DatagramPack
 	public void sendToAll(ChannelHandlerContext ctx, ByteBuffer message)
 	{
 		DatagramPacket packet;
-		for(User u : userData.values())
+		for(Channel c : channels)
 		{
-			packet = new DatagramPacket(Unpooled.copiedBuffer(message),u.outSocket);
-			ctx.write(packet);
+			packet = new DatagramPacket(Unpooled.copiedBuffer(message),(InetSocketAddress) c.remoteAddress());
+			c.writeAndFlush(packet);
 		}
 	}
 	
-	public void sendToAllExcept(ChannelHandlerContext ctx, ByteBuffer message, InetSocketAddress other)
+	public void sendToAllOther(ChannelHandlerContext ctx, ByteBuffer message)
 	{
 		DatagramPacket packet;
-		for(User u : userData.values())
+		for(Channel c : channels)
 		{
-			if(u.outSocket.equals(other)) continue;
-			packet = new DatagramPacket(Unpooled.copiedBuffer(message),u.outSocket);
-			ctx.write(packet);
+			if(ctx.channel().equals(c))continue;
+			packet = new DatagramPacket(Unpooled.copiedBuffer(message),(InetSocketAddress) c.remoteAddress());
+			c.writeAndFlush(packet);
 		}
+	}
+	
+	public void spawnObject(ChannelHandlerContext ctx, WorldObject object)
+	{
+		byte[] data = object.serializeData();
+		ByteBuffer buffer = ByteBuffer.allocate(data.length + Integer.BYTES + 2*Float.BYTES + 1);
+		buffer.put(PacketID.SPAWN);
+		buffer.putInt(object.id);
+		buffer.putFloat(object.posX);
+		buffer.putFloat(object.posY);
+		buffer.put(data);
+		sendToAll(ctx, buffer);
+	}
+	
+	public void spawnPlayerObject(ChannelHandlerContext ctx, WorldObject object)
+	{
+		byte[] data = object.serializeData();
+		ByteBuffer buffer = ByteBuffer.allocate(data.length + Integer.BYTES + 2*Float.BYTES + 1);
+		buffer.put(PacketID.SPAWN);
+		buffer.putInt(object.id);
+		buffer.putFloat(object.posX);
+		buffer.putFloat(object.posY);
+		buffer.put(data);
+		sendToAllOther(ctx, buffer);
 	}
 	
 }
