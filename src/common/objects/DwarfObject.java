@@ -21,7 +21,7 @@ public class DwarfObject extends WorldObject{
 		int labelWidth = g.getFontMetrics().stringWidth(name);
 		g.setColor(Color.BLACK);
 		g.drawString(name, -labelWidth/2, 12);
-		
+		g.drawString(Integer.toHexString(id), -labelWidth/2, 24);
 	}
 
 	@Override

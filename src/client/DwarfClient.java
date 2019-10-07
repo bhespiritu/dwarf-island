@@ -10,7 +10,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.util.HashMap;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -34,6 +35,8 @@ import server.DwarfServer;
 
 public class DwarfClient extends JPanel implements KeyListener{
 	
+	String ClientInstanceName = Double.toHexString(Math.random());
+	
 	public static final boolean DEBUG_LAUNCH = true;
 	
 	public static void main(String[] args) throws Exception {
@@ -51,8 +54,11 @@ public class DwarfClient extends JPanel implements KeyListener{
 			ipAddress=JOptionPane.showInputDialog("Enter IP Address");
 		
 		DwarfClient client = new DwarfClient(ipAddress);
+		DwarfClient client2 = new DwarfClient(ipAddress);
 		String clientName = JOptionPane.showInputDialog("Enter the name you desire");
 		
+		
+		client2.connect(clientName+2);
 		client.connect(clientName);
 		
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -61,10 +67,19 @@ public class DwarfClient extends JPanel implements KeyListener{
 		frame.pack();
 		frame.setVisible(true);
 		
+		JFrame frame2 = new JFrame("Digscord");
+		
+		frame2.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame2.setContentPane(client2);
+		frame2.pack();
+		frame2.setVisible(true);
+		
 		for(;;)
 		{
 			client.repaint();
 			client.time += 1/24f;
+			client2.repaint();
+			client2.time += 1/24f;
 			Thread.sleep(1000/24);
 		}
 	}
@@ -73,7 +88,7 @@ public class DwarfClient extends JPanel implements KeyListener{
 	
 	static final int PORT = Integer.parseInt(System.getProperty("port", "7686"));
 	
-	private HashMap<Integer,WorldObject> objects = new HashMap<Integer,WorldObject>();
+	private ConcurrentHashMap<Integer,WorldObject> objects = new ConcurrentHashMap<Integer,WorldObject>();
 	
 	private DwarfObject clientPlayer;
 	
@@ -100,16 +115,21 @@ public class DwarfClient extends JPanel implements KeyListener{
 	
 	public WorldObject getObject(int id)
 	{
-		if(!objects.containsKey(id))System.out.println(id + " was requested, it doesn't exist in this instance");
+		if(!objects.containsKey(id))System.out.println(Integer.toHexString(id) + " was requested, it doesn't exist in this instance");
 		return objects.get(id);
 	}
 	
 	
-	public void spawnObject(WorldObject object, int i, boolean network)//registers a worldobject with the world
+	public void spawnObject(WorldObject object, int id, boolean network)//registers a worldobject with the world
 	{
-		object.id = i;
+		object.id = id;
 		object.isNetworked = network;
-		objects.put(i, object);
+		synchronized(objects)
+		{
+			objects.put(id, object);
+		}
+		System.out.println(ClientInstanceName + " OBJECT SPAWNED : " + Integer.toHexString(id) + " at " + object.posX +" " + object.posY);
+		
 	}
 	
 	
@@ -165,7 +185,7 @@ public class DwarfClient extends JPanel implements KeyListener{
 				
 			}
 		}
-		
+
 		for(WorldObject obj : objects.values())
 		{
 			obj.draw(this, g2);
@@ -256,9 +276,8 @@ public class DwarfClient extends JPanel implements KeyListener{
 			clientPlayer.posX = -cameraX/32f;
 			clientPlayer.posY = -cameraY/32f;
 			
-			ByteBuffer buffer = ByteBuffer.allocate(3*4 + 1);
+			ByteBuffer buffer = ByteBuffer.allocate(1 + Integer.BYTES + 2*Float.BYTES);
 			buffer.put(PacketID.MOVE);
-			buffer.putInt(clientPlayer.id);
 			buffer.putFloat(clientPlayer.posX);
 			buffer.putFloat(clientPlayer.posY);
 			buffer.rewind();
