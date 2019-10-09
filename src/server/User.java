@@ -8,6 +8,7 @@ public class User {
 	
 	public int hash;
 	public Channel channel;
+	public InetSocketAddress address;
 	
 	public User() {
 		

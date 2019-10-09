@@ -31,7 +31,7 @@ public class DwarfObject extends WorldObject{
 
 	@Override
 	public void deserializeData(byte[] data) {
-		name = new String(data);
+		name = new String(data,0,data.length).trim();
 		
 	}
 

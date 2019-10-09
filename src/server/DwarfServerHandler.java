@@ -93,6 +93,7 @@ public class DwarfServerHandler extends SimpleChannelInboundHandler<DatagramPack
 				ctx.write(returnPacket);
 				
 				associatedUser.hash = hash;
+				associatedUser.address = msg.sender();
 				
 				DwarfObject newDwarf = new DwarfObject();
 				newDwarf.id = hash;
@@ -100,7 +101,7 @@ public class DwarfServerHandler extends SimpleChannelInboundHandler<DatagramPack
 				newDwarf.posY = newY;
 				newDwarf.name = name;
 				
-				spawnObject(ctx, newDwarf);
+				spawnPlayerObject(ctx, newDwarf);
 				
 				break;
 		}
@@ -157,13 +158,11 @@ public class DwarfServerHandler extends SimpleChannelInboundHandler<DatagramPack
 	public void sendToAllOther(ChannelHandlerContext ctx, ByteBuffer message)
 	{
 		DatagramPacket packet;
-		for(Channel c : parent.channels)
+		for(InetSocketAddress addr : parent.clients)
 		{
-			if(associatedUser.channel.equals(c))continue;
-			InetSocketAddress addr = c.attr(address).get();
+			if(associatedUser.address.equals(addr)) {System.out.println("DEFEF");continue;}
 			packet = new DatagramPacket(Unpooled.copiedBuffer(message),addr);
-			System.out.println(c + " " + packet + " " + message.get());
-			c.writeAndFlush(packet);
+			ctx.writeAndFlush(packet);
 		}
 	}
 	
@@ -184,9 +183,10 @@ public class DwarfServerHandler extends SimpleChannelInboundHandler<DatagramPack
 	public void spawnPlayerObject(ChannelHandlerContext ctx, WorldObject object)
 	{
 		byte[] data = object.serializeData();
-		ByteBuffer buffer = ByteBuffer.allocate(data.length + Integer.BYTES + 2*Float.BYTES + 1);
+		ByteBuffer buffer = ByteBuffer.allocate(data.length + 2*Integer.BYTES + 2*Float.BYTES + 1);
 		buffer.put(PacketID.SPAWN);
 		buffer.putInt(object.id);
+		buffer.put(object.getObjectID());
 		buffer.putFloat(object.posX);
 		buffer.putFloat(object.posY);
 		buffer.put(data);

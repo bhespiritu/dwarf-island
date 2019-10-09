@@ -2,6 +2,7 @@ package server;
 
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.util.HashMap;
 import java.util.HashSet;
 
 import io.netty.bootstrap.Bootstrap;
@@ -21,6 +22,10 @@ public class DwarfServer implements Runnable{
             new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 	
 	HashSet<InetSocketAddress> clients = new HashSet<InetSocketAddress>();
+	
+	HashMap<InetSocketAddress, User> users = new HashMap<InetSocketAddress, User>(); 
+	
+
 	
 	public static void main(String[] args) throws InterruptedException, UnknownHostException {
 		DwarfServer server = new DwarfServer();
